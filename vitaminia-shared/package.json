@@ -10,6 +10,9 @@
   "exports": {
     "./content-registry/search.mjs": "./src/content-registry/search.mjs",
     "./content-registry/content-registry-lib.mjs": "./src/content-registry/content-registry-lib.mjs",
+    "./content-registry/links.mjs": "./src/content-registry/links.mjs",
+    "./content-registry/validate.mjs": "./src/content-registry/validate.mjs",
+    "./content-registry/seo-health.mjs": "./src/content-registry/seo-health.mjs",
     "./normalize-job.mjs": "./src/normalize-job.mjs",
     "./cost-estimate.mjs": "./src/cost-estimate.mjs",
     "./strategy-run-lifecycle.mjs": "./src/strategy-run-lifecycle.mjs",
