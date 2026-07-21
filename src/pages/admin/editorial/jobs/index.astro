@@ -1,0 +1,10 @@
+---
+// Этап 7 ТЗ (Часть 9) — отдельный список jobs, сгруппированный по
+// В работе/Требуют решения/Готовы к публикации/Ожидают сборки.
+export const prerender = false;
+import AppLayout from "../../../../layouts/AppLayout.astro";
+import EditorialApp from "../../../../components/admin/EditorialApp";
+---
+<AppLayout title="Производство — Vitaminia">
+  <EditorialApp client:load section="jobs" />
+</AppLayout>

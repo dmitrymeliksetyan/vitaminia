@@ -1,0 +1,90 @@
+---
+import Icon from "./Icon.astro";
+import type { IconName } from "../config/theme";
+
+interface Props {
+  title: string;
+  description: string;
+  href: string;
+  icon?: IconName;
+  accentColor?: string;
+}
+
+const { title, description, href, icon, accentColor } = Astro.props;
+
+// Вычисляем стили в frontmatter — нельзя использовать template literals с `:` в ternary
+// прямо в шаблоне: Astro-парсер путает `:` из CSS-строки с ternary-оператором.
+const cardStyle    = accentColor ? "--category-accent: " + accentColor : undefined;
+const iconStyle    = accentColor
+  ? "background: " + accentColor + "18; color: " + accentColor
+  : undefined;
+---
+<a class="category-card" href={href} style={cardStyle}>
+  <div class="category-card__top">
+    {icon && (
+      <span class="category-card__icon-wrap" style={iconStyle}>
+        <Icon name={icon} size={22} />
+      </span>
+    )}
+    <h2 class="category-card__title">{title}</h2>
+  </div>
+  <p class="category-card__description">{description}</p>
+  <span class="category-card__arrow" aria-hidden="true">→</span>
+</a>
+
+<style>
+  .category-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+    padding: var(--space-5, 1.25rem);
+    background: #fff;
+    border: 1px solid var(--color-border, #e8eaed);
+    border-top: 3px solid var(--category-accent, var(--color-brand-blue, #1e3a7b));
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .category-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  .category-card__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 0.75rem);
+  }
+  .category-card__icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md, 8px);
+    background: rgba(30, 58, 123, 0.08);
+    color: var(--color-brand-blue, #1e3a7b);
+    flex-shrink: 0;
+  }
+  .category-card__title {
+    font-size: var(--font-size-md, 1rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-text, #1a1a2e);
+  }
+  .category-card__description {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    line-height: var(--line-height-relaxed, 1.7);
+    flex: 1;
+  }
+  .category-card__arrow {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--category-accent, var(--color-brand-blue, #1e3a7b));
+    align-self: flex-end;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .category-card:hover .category-card__arrow { opacity: 1; }
+</style>

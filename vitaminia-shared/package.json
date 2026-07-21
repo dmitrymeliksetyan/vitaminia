@@ -1,0 +1,21 @@
+{
+  "name": "vitaminia-shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Общий код между vitaminia-live (SSR) и vitaminia-worker (AI Worker) — форк medizin-shared под схему нутриента (один тип контента вместо symptom/drug). Только plain ESM .mjs. Подключается ОБОИМИ проектами как локальная file:-зависимость.",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "exports": {
+    "./content-registry/search.mjs": "./src/content-registry/search.mjs",
+    "./content-registry/content-registry-lib.mjs": "./src/content-registry/content-registry-lib.mjs",
+    "./normalize-job.mjs": "./src/normalize-job.mjs",
+    "./cost-estimate.mjs": "./src/cost-estimate.mjs",
+    "./strategy-run-lifecycle.mjs": "./src/strategy-run-lifecycle.mjs",
+    "./strategy-reason-priority.mjs": "./src/strategy-reason-priority.mjs"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

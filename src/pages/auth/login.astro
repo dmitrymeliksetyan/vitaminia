@@ -1,0 +1,89 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+---
+<AppLayout title="Войти — Vitaminia">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12" style="background:#f8f9fb">
+    <div style="width:100%;max-width:360px">
+
+      <div style="text-align:center;margin-bottom:2rem">
+        <a href="/" style="text-decoration:none;display:inline-block;margin-bottom:1.5rem">
+          <span style="font-size:1.25rem;font-weight:700;letter-spacing:-.01em;color:#1a1a2e">Vitaminia</span>
+        </a>
+        <h1 style="font-size:1.5rem;font-weight:700;color:#1a1a2e;margin:0 0 .25rem">Войти</h1>
+        <p style="font-size:.875rem;color:#5a6272;margin:0">Вход в админ-панель</p>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8eaed;border-radius:16px;padding:1.5rem;box-shadow:0 1px 3px rgba(30,58,123,.06)">
+        <form id="login-form">
+          <div style="margin-bottom:1rem">
+            <label for="email" style="display:block;font-size:.8rem;font-weight:500;color:#5a6272;margin-bottom:4px">Email</label>
+            <input id="email" type="email" autocomplete="email" required
+              style="width:100%;height:38px;padding:0 12px;border:1px solid #e8eaed;border-radius:8px;font-size:.875rem;font-family:inherit;box-sizing:border-box;outline:none"
+              onfocus="this.style.borderColor='#1e3a7b'" onblur="this.style.borderColor='#e8eaed'" />
+          </div>
+          <div style="margin-bottom:1.25rem">
+            <label for="password" style="display:block;font-size:.8rem;font-weight:500;color:#5a6272;margin-bottom:4px">Пароль</label>
+            <input id="password" type="password" autocomplete="current-password" required
+              style="width:100%;height:38px;padding:0 12px;border:1px solid #e8eaed;border-radius:8px;font-size:.875rem;font-family:inherit;box-sizing:border-box;outline:none"
+              onfocus="this.style.borderColor='#1e3a7b'" onblur="this.style.borderColor='#e8eaed'" />
+          </div>
+          <div id="error" style="display:none;font-size:.8rem;color:#c62828;background:#fdecec;border:1px solid #f0b3b3;border-radius:8px;padding:8px 12px;margin-bottom:1rem"></div>
+          <button type="submit" id="submit"
+            style="width:100%;height:40px;background:#1e3a7b;color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity .15s">
+            Войти
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+// Импортируем тот же supabase-клиент что использует приложение.
+// Это гарантирует единый storageKey и единое хранилище сессии.
+import { supabase } from '../../lib/auth/browser-supabase';
+
+const form   = document.getElementById('login-form') as HTMLFormElement;
+const errEl  = document.getElementById('error')  as HTMLDivElement;
+const btn    = document.getElementById('submit')  as HTMLButtonElement;
+
+// Если уже есть сессия — сразу на /my
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session) window.location.href = '/admin';
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  btn.disabled = true;
+  btn.textContent = 'Вход…';
+  errEl.style.display = 'none';
+
+  const email    = (document.getElementById('email')    as HTMLInputElement).value.trim();
+  const password = (document.getElementById('password') as HTMLInputElement).value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    // Показываем реальную ошибку Supabase без маскировки
+    errEl.textContent = error.message === 'Invalid login credentials'
+      ? 'Неверный email или пароль'
+      : error.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+    return;
+  }
+
+  // Проверяем что сессия действительно установлена
+  if (!data.session) {
+    errEl.textContent = 'Сессия не установлена. Попробуйте ещё раз.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+    return;
+  }
+
+  // Сессия есть — переходим в приложение
+  window.location.href = '/admin';
+});
+</script>

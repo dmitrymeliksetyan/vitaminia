@@ -1,0 +1,58 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+---
+<AppLayout title="Вход — Vitaminia">
+  <div class="min-h-screen flex items-center justify-center" style="background:#f8f9fb">
+    <div style="text-align:center">
+      <svg style="animation:spin 1s linear infinite;width:32px;height:32px;color:#1e3a7b;margin:0 auto 12px" fill="none" viewBox="0 0 24 24">
+        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/>
+      </svg>
+      <p style="font-size:.875rem;color:#5a6272">Подтверждение входа…</p>
+    </div>
+  </div>
+  <style>@keyframes spin { to { transform:rotate(360deg) } }</style>
+</AppLayout>
+
+<script>
+import { supabase } from '../../lib/auth/browser-supabase';
+
+async function handleCallback() {
+  // Проверяем ТИП редиректа ДО события onAuthStateChange.
+  // Supabase передаёт type как в query string, так и в hash фрагменте.
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const type = params.get('type') || hashParams.get('type');
+  const isRecovery = type === 'recovery';
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    subscription.unsubscribe();
+
+    // Если это сброс пароля — всегда на страницу смены пароля
+    if (event === 'PASSWORD_RECOVERY' || isRecovery) {
+      window.location.href = '/auth/update-password';
+      return;
+    }
+
+    if (event === 'SIGNED_IN' && session) {
+      window.location.href = '/admin';
+      return;
+    }
+
+    window.location.href = '/auth/login';
+  });
+
+  // Таймаут с учётом type
+  setTimeout(async () => {
+    subscription.unsubscribe();
+    if (isRecovery) {
+      window.location.href = '/auth/update-password';
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    window.location.href = session ? '/admin' : '/auth/login';
+  }, 5000);
+}
+
+handleCallback();
+</script>

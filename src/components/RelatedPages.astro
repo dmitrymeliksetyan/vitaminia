@@ -1,0 +1,52 @@
+---
+export interface RelatedItem { title: string; href: string; }
+interface Props { items: RelatedItem[]; heading?: string; }
+const { items, heading = "Похожие симптомы" } = Astro.props;
+---
+{items.length > 0 && (
+  <nav class="related" aria-label={heading}>
+    <h2 class="related__heading">{heading}</h2>
+    <ul class="related__list">
+      {items.map((item) => (
+        <li>
+          <a href={item.href} class="related__link">
+            <span>{item.title}</span>
+            <span class="related__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .related__heading {
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-neutral-900, #1a1a2e);
+    padding-bottom: var(--space-2, 0.5rem);
+    border-bottom: 2px solid var(--color-border, #e8eaed);
+    margin-bottom: var(--space-3, 0.75rem);
+  }
+  .related__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1, 0.25rem);
+  }
+  .related__link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-brand-blue, #1e3a7b);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .related__link:hover { background: var(--color-neutral-50, #f8f9fb); text-decoration: none; }
+  .related__arrow { color: var(--color-neutral-400, #9aa3b2); font-size: var(--font-size-sm, 0.875rem); }
+</style>

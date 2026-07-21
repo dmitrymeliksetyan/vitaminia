@@ -1,0 +1,45 @@
+# Локальные секреты для эмуляции Cloudflare runtime (wrangler / astro dev).
+# Скопируйте в .dev.vars (этот файл в .gitignore, не коммитить).
+#
+# Используется ТОЛЬКО на сервере (src/pages/api/*), никогда не
+# передаётся в браузер и не имеет префикса PUBLIC_.
+
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-sonnet-5
+
+# Форма обратной связи (src/pages/api/feedback.ts) — см. итоговый отчёт для
+# пошаговой инструкции, что и где создавать.
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+RESEND_API_KEY=re_...
+FEEDBACK_EMAIL=dmitrymeliksetyan@gmail.com
+# Необязательно — до подтверждения домена medizin.ru в Resend оставьте пустым,
+# сработает безопасный дефолт onboarding@resend.dev (см. resend.ts).
+RESEND_FROM_EMAIL=
+
+# Продуктовая аналитика (Этап 1) — see src/pages/api/analytics/event.ts и
+# src/pages/api/admin/analytics.ts. SUPABASE_SERVICE_ROLE_KEY переиспользован
+# из блока выше (тот же секрет, тот же helper).
+# ADMIN_USER_IDS — список UUID пользователей через запятую, кому разрешён
+# доступ к /admin. Узнать свой UUID: Supabase Dashboard → Authentication →
+# Users → скопировать значение UID для вашего аккаунта.
+ADMIN_USER_IDS=00000000-0000-0000-0000-000000000000
+
+# AI-редакция — реальная публикация материалов (Этап 6, Часть 1). Без этих
+# трёх переменных кнопка "Опубликовать" вернёт явную ошибку
+# "github_not_configured" вместо того, чтобы тихо считаться успешной без
+# реального эффекта. Нужны ТОЛЬКО на сервере (Cloudflare Pages → Settings →
+# Environment variables → Secrets), в .dev.vars нужны только для локальной
+# разработки.
+#   GITHUB_TOKEN  — GitHub Personal Access Token (Fine-grained, права
+#                   "Contents: Read and write" на именно этот репозиторий).
+#                   Создать: GitHub → Settings → Developer settings →
+#                   Fine-grained tokens → Generate new token.
+#   GITHUB_REPO   — "owner/repo", например "dmitrymeliksetyan/medizin".
+#   GITHUB_BRANCH — ветка, от которой Cloudflare Pages деплоит прод
+#                   (обычно "main"). Публикация коммитит .mdx и обновление
+#                   Registry прямо в эту ветку — дальше сборку и деплой
+#                   выполняет уже настроенная у вас интеграция Cloudflare
+#                   Pages ↔ GitHub, как и при обычном ручном пуше.
+GITHUB_TOKEN=
+GITHUB_REPO=
+GITHUB_BRANCH=main

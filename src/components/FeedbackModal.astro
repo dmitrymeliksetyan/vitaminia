@@ -1,0 +1,317 @@
+---
+// Модальная форма обратной связи. Намеренно НЕ React-остров: Footer.astro
+// используется на каждой странице основного сайта, а форма — простое
+// взаимодействие (открыть/закрыть/отправить), для которого не нужен React
+// или дополнительная client:load-гидратация на каждой странице. Тот же
+// подход, что уже используется в проекте — ср. инлайновый <script> в
+// src/components/SymptomNextSteps.astro.
+---
+<div id="feedback-overlay" class="feedback-overlay" hidden>
+  <div
+    class="feedback-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="feedback-title"
+  >
+    <button type="button" id="feedback-close" class="feedback-modal__close" aria-label="Закрыть">×</button>
+
+    <h2 id="feedback-title" class="feedback-modal__title">Обратная связь</h2>
+    <p class="feedback-modal__lead">Нашли ошибку или хотите что-то предложить? Напишите нам.</p>
+
+    <form id="feedback-form" novalidate>
+      <!-- Honeypot — скрыто от обычных пользователей CSS, боты часто всё равно заполняют. -->
+      <div class="feedback-honeypot" aria-hidden="true">
+        <label for="feedback-website">Website</label>
+        <input type="text" id="feedback-website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <label class="feedback-field">
+        <span>Имя</span>
+        <input type="text" id="feedback-name" name="name" maxlength="100" autocomplete="name" />
+      </label>
+
+      <label class="feedback-field">
+        <span>Email для ответа</span>
+        <input type="email" id="feedback-email" name="reply_email" maxlength="254" autocomplete="email" />
+        <span class="feedback-field__error" id="feedback-email-error" hidden>Проверьте формат email</span>
+      </label>
+
+      <label class="feedback-field">
+        <span>Сообщение *</span>
+        <textarea id="feedback-message" name="message" rows="5" minlength="3" maxlength="5000" required></textarea>
+        <span class="feedback-field__error" id="feedback-message-error" hidden>Напишите сообщение (минимум 3 символа)</span>
+      </label>
+
+      <div id="feedback-status" class="feedback-status" role="status" aria-live="polite"></div>
+
+      <div class="feedback-actions">
+        <button type="submit" id="feedback-submit" class="feedback-submit">Отправить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  import { supabase } from '../lib/auth/browser-supabase';
+
+  const overlay = document.getElementById('feedback-overlay') as HTMLDivElement | null;
+  const modal = overlay?.querySelector('.feedback-modal') as HTMLDivElement | null;
+  const form = document.getElementById('feedback-form') as HTMLFormElement | null;
+  const closeBtn = document.getElementById('feedback-close');
+  const submitBtn = document.getElementById('feedback-submit') as HTMLButtonElement | null;
+  const statusEl = document.getElementById('feedback-status');
+  const messageInput = document.getElementById('feedback-message') as HTMLTextAreaElement | null;
+  const emailInput = document.getElementById('feedback-email') as HTMLInputElement | null;
+  const messageError = document.getElementById('feedback-message-error');
+  const emailError = document.getElementById('feedback-email-error');
+
+  let lastFocused: HTMLElement | null = null;
+  let succeeded = false;
+
+  function openModal() {
+    if (!overlay) return;
+    lastFocused = document.activeElement as HTMLElement | null;
+    overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    messageInput?.focus();
+  }
+
+  function closeModal() {
+    if (!overlay) return;
+    overlay.hidden = true;
+    document.body.style.overflow = '';
+    lastFocused?.focus();
+  }
+
+  // Открытие — делегирование на document, чтобы работало вне зависимости от
+  // того, где на странице находится кнопка-триггер (Footer рендерится один
+  // раз, но так надёжнее и проще для будущих мест вызова).
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('#feedback-trigger')) {
+      e.preventDefault();
+      openModal();
+    }
+  });
+
+  closeBtn?.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay && !overlay.hidden) closeModal();
+  });
+
+  // Клик вне модалки закрывает — но не если уже есть заметный ввод в
+  // сообщении (чтобы не потерять случайно набранный текст, см. ТЗ).
+  overlay?.addEventListener('mousedown', (e) => {
+    if (e.target === overlay) {
+      const hasSubstantialInput = (messageInput?.value.trim().length ?? 0) > 10;
+      if (!hasSubstantialInput) closeModal();
+    }
+  });
+
+  modal?.addEventListener('mousedown', (e) => e.stopPropagation());
+
+  function validate(): boolean {
+    let ok = true;
+    const msg = messageInput?.value.trim() ?? '';
+    if (msg.length < 3) {
+      messageError?.removeAttribute('hidden');
+      ok = false;
+    } else {
+      messageError?.setAttribute('hidden', '');
+    }
+
+    const email = emailInput?.value.trim() ?? '';
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailError?.removeAttribute('hidden');
+      ok = false;
+    } else {
+      emailError?.setAttribute('hidden', '');
+    }
+
+    return ok;
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validate() || !submitBtn) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправляем…';
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.className = 'feedback-status';
+    }
+
+    try {
+      // Токен сессии передаём, если пользователь авторизован — сервер сам
+      // проверит его и определит user_id, форма его не выбирает и не
+      // подделывает (см. src/pages/api/feedback.ts).
+      let authHeader: string | undefined;
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) authHeader = `Bearer ${session.access_token}`;
+      } catch {
+        // Нет сессии — отправляем как анонимный, это ок.
+      }
+
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader ? { Authorization: authHeader } : {}),
+        },
+        body: JSON.stringify({
+          name: (document.getElementById('feedback-name') as HTMLInputElement | null)?.value.trim() || undefined,
+          reply_email: emailInput?.value.trim() || undefined,
+          message: messageInput?.value.trim(),
+          page_url: window.location.href,
+          website: (document.getElementById('feedback-website') as HTMLInputElement | null)?.value || '',
+        }),
+      });
+
+      let data: { ok: boolean };
+      try {
+        data = await res.json();
+      } catch {
+        data = { ok: false };
+      }
+
+      if (data.ok) {
+        succeeded = true;
+        if (statusEl) {
+          statusEl.textContent = 'Спасибо! Сообщение отправлено.';
+          statusEl.className = 'feedback-status feedback-status--success';
+        }
+        form?.reset();
+        setTimeout(closeModal, 1800);
+      } else {
+        if (statusEl) {
+          statusEl.textContent = 'Не удалось отправить сообщение. Попробуйте ещё раз.';
+          statusEl.className = 'feedback-status feedback-status--error';
+        }
+      }
+    } catch {
+      if (statusEl) {
+        statusEl.textContent = 'Не удалось отправить сообщение. Попробуйте ещё раз.';
+        statusEl.className = 'feedback-status feedback-status--error';
+      }
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Отправить';
+    }
+  });
+</script>
+
+<style>
+  .feedback-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 26, 46, 0.45);
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4, 1rem);
+    z-index: 200;
+    /* Закрыто по умолчанию. ВАЖНО: display здесь НЕ flex — author-стили
+       всегда перебивают встроенное [hidden]{display:none} браузера
+       независимо от специфичности, поэтому display:flex тут раньше
+       держал модалку видимой всегда, что бы ни делал JS с атрибутом
+       hidden (баг: открывалась сама и не закрывалась по ×/Escape). */
+    display: none;
+  }
+  .feedback-overlay:not([hidden]) {
+    display: flex;
+  }
+  .feedback-modal {
+    position: relative;
+    background: var(--color-neutral-0, #fff);
+    border-radius: var(--radius-lg, 12px);
+    max-width: 440px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: var(--space-6, 1.5rem);
+    box-shadow: var(--shadow-lg, 0 12px 40px rgba(0,0,0,.15));
+  }
+  .feedback-modal__close {
+    position: absolute;
+    top: var(--space-4, 1rem);
+    right: var(--space-4, 1rem);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-text-secondary, #5a6272);
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .feedback-modal__title {
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: var(--font-weight-semibold, 600);
+    margin: 0 0 var(--space-2, 0.5rem);
+    color: var(--color-text, #1a1a2e);
+  }
+  .feedback-modal__lead {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    margin: 0 0 var(--space-5, 1.25rem);
+    line-height: var(--line-height-relaxed, 1.7);
+  }
+  .feedback-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: var(--space-4, 1rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text, #1a1a2e);
+  }
+  .feedback-field input,
+  .feedback-field textarea {
+    font: inherit;
+    padding: 10px 12px;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-border, #e8eaed);
+    resize: vertical;
+  }
+  .feedback-field input:focus,
+  .feedback-field textarea:focus {
+    outline: 2px solid var(--color-brand-blue, #1e3a7b);
+    outline-offset: 1px;
+  }
+  .feedback-field__error {
+    color: var(--color-severity-high, #c62828);
+    font-size: var(--font-size-xs, 0.75rem);
+  }
+  .feedback-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .feedback-status {
+    min-height: 1.25em;
+    font-size: var(--font-size-sm, 0.875rem);
+    margin-bottom: var(--space-3, 0.75rem);
+  }
+  .feedback-status--success { color: var(--color-severity-low, #2e7d32); }
+  .feedback-status--error { color: var(--color-severity-high, #c62828); }
+  .feedback-actions { display: flex; justify-content: flex-end; }
+  .feedback-submit {
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: var(--font-weight-medium, 500);
+    background: var(--color-brand-blue, #1e3a7b);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: 10px 24px;
+    cursor: pointer;
+  }
+  .feedback-submit:disabled { opacity: 0.6; cursor: default; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feedback-modal { transition: none; }
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+type Variant = "info" | "warning" | "danger";
+
+interface Props {
+  variant?: Variant;
+  title?: string;
+}
+
+const { variant = "info", title } = Astro.props;
+
+const ICONS: Record<Variant, string> = {
+  info: "ℹ",
+  warning: "⚠",
+  danger: "‼"
+};
+
+const ROLE: Record<Variant, string> = {
+  info: "note",
+  warning: "note",
+  danger: "alert"
+};
+---
+<div class={`warning-box warning-box--${variant}`} role={ROLE[variant]}>
+  <span class="warning-box__icon" aria-hidden="true">{ICONS[variant]}</span>
+  <div class="warning-box__body">
+    {title && <p class="warning-box__title">{title}</p>}
+    <div class="warning-box__content">
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .warning-box {
+    display: flex;
+    gap: var(--space-2, 0.5rem);
+    padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-border, #ddd);
+  }
+  .warning-box--info {
+    background: var(--color-bg-info, #eef4fb);
+    border-color: var(--color-border-info, #b6d4f0);
+  }
+  .warning-box--warning {
+    background: var(--color-bg-warning, #fff6e5);
+    border-color: var(--color-border-warning, #f0d29b);
+  }
+  .warning-box--danger {
+    background: var(--color-bg-danger, #fdecec);
+    border-color: var(--color-border-danger, #f0b3b3);
+  }
+  .warning-box__title {
+    font-weight: 600;
+    margin: 0 0 var(--space-1, 0.25rem);
+  }
+  .warning-box__content {
+    margin: 0;
+  }
+</style>

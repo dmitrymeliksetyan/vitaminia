@@ -1,0 +1,52 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="Página no encontrada — Vitaminia.mx" description="La página que buscas no existe." path="/404">
+  <main class="not-found">
+    <div class="not-found__inner">
+      <span class="not-found__code">404</span>
+      <h1 class="not-found__title">Página no encontrada</h1>
+      <p class="not-found__text">Puede que el contenido se haya movido a otra sección o que el enlace ya no exista.</p>
+      <a href="/" class="not-found__btn">Ir al inicio</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .not-found {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8, 2rem) var(--space-4, 1rem);
+  }
+  .not-found__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3, 0.75rem);
+    text-align: center;
+    max-width: 400px;
+  }
+  .not-found__code {
+    font-size: 5rem;
+    font-weight: 700;
+    color: var(--color-accent-default, #5DB53D);
+    opacity: 0.12;
+    line-height: 1;
+  }
+  .not-found__title { font-size: var(--font-size-2xl, 1.75rem); font-weight: 700; }
+  .not-found__text { color: var(--color-text-secondary, #5a6272); line-height: 1.6; }
+  .not-found__btn {
+    margin-top: var(--space-2, 0.5rem);
+    display: inline-block;
+    padding: var(--space-2, 0.5rem) var(--space-6, 1.5rem);
+    background: var(--color-accent-default, #5DB53D);
+    color: #fff;
+    border-radius: var(--radius-md, 8px);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .not-found__btn:hover { background: var(--color-brand-green, #5DB53D); text-decoration: none; }
+</style>

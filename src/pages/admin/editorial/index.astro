@@ -1,0 +1,10 @@
+---
+// Этап 7 ТЗ — «AI-редакция» отдельным разделом верхнего уровня.
+// Обзор: сводка/статус/следующее действие (Часть 5 ТЗ).
+export const prerender = false;
+import AppLayout from "../../../layouts/AppLayout.astro";
+import EditorialApp from "../../../components/admin/EditorialApp";
+---
+<AppLayout title="AI-редакция — Vitaminia">
+  <EditorialApp client:load section="overview" />
+</AppLayout>

@@ -1,0 +1,67 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  href: string;
+  kind?: string;
+}
+
+const KIND_LABELS: Record<string, string> = {
+  vitamina: "Vitamina",
+  mineral: "Mineral",
+  nutriente: "Nutriente",
+  aminoacido: "Aminoácido",
+  suplemento: "Suplemento"
+};
+
+const { title, description, href, kind } = Astro.props;
+const kindLabel = kind ? KIND_LABELS[kind] ?? kind : undefined;
+---
+<a class="nutrient-card" href={href}>
+  <h3 class="nutrient-card__title">{title}</h3>
+  <p class="nutrient-card__description">{description}</p>
+  {kindLabel && <span class="nutrient-card__kind">{kindLabel}</span>}
+</a>
+
+<style>
+  .nutrient-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+    padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
+    background: #fff;
+    border: 1px solid var(--color-border, #e8eaed);
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .nutrient-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  .nutrient-card__title {
+    font-size: var(--font-size-md, 1rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-text, #1a1a2e);
+    margin: 0;
+  }
+  .nutrient-card__description {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    line-height: var(--line-height-normal, 1.5);
+    margin: 0;
+    flex: 1;
+  }
+  .nutrient-card__kind {
+    align-self: flex-start;
+    font-size: var(--font-size-xs, 0.75rem);
+    font-weight: var(--font-weight-medium, 500);
+    color: var(--color-accent-default, #5DB53D);
+    background: rgba(93, 181, 61, 0.1);
+    padding: 2px 10px;
+    border-radius: var(--radius-full, 999px);
+  }
+</style>

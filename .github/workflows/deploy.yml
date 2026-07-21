@@ -1,0 +1,117 @@
+# Infrastructure v2, п.2/п.13 ТЗ — "Публикация контента": после git push
+# (в т.ч. автоматического коммита от AI-редакции, см.
+# src/lib/content-editor/github-client.ts) сборка и деплой должны
+# происходить полностью автоматически, без ручного захода на сервер.
+#
+# Сборка выполняется ЗДЕСЬ, на GitHub-раннере (не на проде — чтобы не
+# грузить билдами боевой сервер), готовый dist/ + минимально необходимые
+# файлы переносятся на сервер по SSH, дальше атомарную публикацию
+# (staging-проверка -> симлинк -> проверка -> опциональный pm2 reload)
+# выполняет уже существующий scripts/deploy/deploy.sh НА сервере.
+#
+# Требуемые секреты репозитория (Settings -> Secrets and variables ->
+# Actions), см. DEPLOY.md, раздел "Настройка CI":
+#   DEPLOY_HOST        — IP/домен сервера
+#   DEPLOY_USER        — SSH-пользователь для деплоя
+#   DEPLOY_SSH_KEY      — приватный SSH-ключ (без passphrase)
+#   DEPLOY_APP_DIR      — путь на сервере (по умолчанию /var/www/vitaminia,
+#                         должен совпадать с APP_DIR в
+#                         scripts/deploy/config.sh)
+#   PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY — нужны на этапе сборки
+#                         (инлайнятся в клиентский бандл Vite, см. .env.example)
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  # Не запускать два деплоя одновременно — новый push отменяет
+  # ещё не начатый предыдущий (не тот, что уже собирается на раннере, тот
+  # всё равно доедет; но лишний из очереди — не нужен, деплоится всегда
+  # только самый свежий коммит).
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # build.sh сам генерирует build-info.ts (версия/коммит/ветка) —
+      # см. GIT_COMMIT_SHA/GIT_BRANCH_NAME оттуда, приоритет источников
+      # описан в scripts/generate-build-info.mjs.
+      - name: Build (static + SSR)
+        run: bash scripts/deploy/build.sh
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Prepare release timestamp
+        id: release
+        run: echo "ts=$(date -u +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      # Переносим ТОЛЬКО то, что нужно в рантайме: dist/ (client+server),
+      # package.json/package-lock.json (для npm ci --omit=dev УЖЕ на
+      # сервере — зависимости платформозависимы, поэтому не переносим
+      # node_modules с раннера), scripts/deploy/ (для запуска Node-процесса
+      # и последующих verify/rollback).
+      - name: Upload release to server
+        env:
+          RELEASE_TS: ${{ steps.release.outputs.ts }}
+          DEPLOY_APP_DIR: ${{ secrets.DEPLOY_APP_DIR }}
+        run: |
+          REMOTE_DIR="${DEPLOY_APP_DIR:-/var/www/vitaminia}/releases/${RELEASE_TS}"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "mkdir -p '$REMOTE_DIR'"
+          # Без завершающего слэша у dist/scripts — так rsync создаёт
+          # именно $REMOTE_DIR/dist/... и $REMOTE_DIR/scripts/..., а не
+          # разливает их содержимое прямо в корень релиза.
+          rsync -az \
+            dist package.json package-lock.json scripts \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:$REMOTE_DIR/"
+
+      # Сама атомарная публикация (staging-проверка -> симлинк -> pm2
+      # reload при необходимости -> финальная проверка -> rollback при
+      # провале) — целиком в deploy.sh, уже написанном и проверенном
+      # локально (см. scripts/deploy/deploy.sh). CI лишь триггерит его.
+      - name: Run deploy.sh on server
+        env:
+          RELEASE_TS: ${{ steps.release.outputs.ts }}
+          DEPLOY_APP_DIR: ${{ secrets.DEPLOY_APP_DIR }}
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "APP_DIR='${DEPLOY_APP_DIR:-/var/www/vitaminia}' bash '${DEPLOY_APP_DIR:-/var/www/vitaminia}/releases/${RELEASE_TS}/scripts/deploy/deploy.sh' '${RELEASE_TS}'"
+
+      - name: Deploy summary
+        if: always()
+        run: |
+          echo "### Deploy ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Release: ${{ steps.release.outputs.ts }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rollback (если что-то пошло не так): \`ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'APP_DIR=${{ secrets.DEPLOY_APP_DIR }} bash ${{ secrets.DEPLOY_APP_DIR }}/current/scripts/deploy/rollback.sh'\`" >> "$GITHUB_STEP_SUMMARY"

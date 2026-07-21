@@ -1,0 +1,121 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import NutrientCard from "../../components/NutrientCard.astro";
+import { getAllCategories, getCategoryBySlug, getNutrientsByCategory } from "../../config/content";
+
+export async function getStaticPaths() {
+  const categories = await getAllCategories();
+  return categories.map((c) => ({ params: { category: c.data.slug } }));
+}
+
+const { category: categorySlug } = Astro.params;
+const category = await getCategoryBySlug(categorySlug!);
+const nutrients = await getNutrientsByCategory(categorySlug!);
+const { Content } = await category.render();
+
+const breadcrumbItems = [
+  { label: "Inicio", href: "/" },
+  { label: category.data.breadcrumbLabel ?? category.data.title, href: `/${categorySlug}` }
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: category.data.title,
+  description: category.data.description
+};
+---
+<BaseLayout
+  title={category.data.seoTitle ?? `${category.data.title} — Vitaminia.mx`}
+  description={category.data.seoDescription ?? category.data.description}
+  path={`/${categorySlug}`}
+>
+  <main class="category-page">
+    <div class="category-page__inner">
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <header class="category-page__header" style={category.data.accentColor ? ("--cat-accent: " + category.data.accentColor) : undefined}>
+        <h1 class="category-page__title">{category.data.title}</h1>
+        <p class="category-page__desc">{category.data.description}</p>
+      </header>
+
+      <div class="category-page__intro">
+        <Content />
+      </div>
+
+      {nutrients.length > 0 ? (
+        <section aria-label={`Contenido de ${category.data.title}`}>
+          <h2 class="category-page__section-title">{category.data.title}</h2>
+          <div class="category-page__grid">
+            {nutrients.map((n) => (
+              <NutrientCard
+                title={n.data.title}
+                description={n.data.shortAnswer}
+                href={`/${categorySlug}/${n.data.slug}`}
+                kind={n.data.kind}
+              />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <p class="category-page__empty">El contenido de esta sección estará disponible muy pronto.</p>
+      )}
+    </div>
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </main>
+</BaseLayout>
+
+<style>
+  .category-page {
+    padding: var(--space-8, 2rem) var(--space-4, 1rem) var(--space-16, 4rem);
+  }
+  .category-page__inner {
+    max-width: var(--container-wide, 1100px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8, 2rem);
+  }
+  .category-page__header {
+    padding: var(--space-6, 1.5rem) var(--space-6, 1.5rem);
+    background: linear-gradient(135deg, #f8f9fb 0%, #eef8f0 100%);
+    border-left: 4px solid var(--cat-accent, var(--color-accent-default, #5DB53D));
+    border-radius: 0 var(--radius-lg, 12px) var(--radius-lg, 12px) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+  }
+  .category-page__title {
+    font-size: var(--font-size-2xl, 1.75rem);
+    font-weight: var(--font-weight-bold, 700);
+    letter-spacing: -0.02em;
+    color: var(--color-neutral-900, #1a1a2e);
+  }
+  .category-page__desc {
+    font-size: var(--font-size-lg, 1.125rem);
+    color: var(--color-text-secondary, #5a6272);
+    line-height: var(--line-height-relaxed, 1.7);
+  }
+  .category-page__intro {
+    font-size: var(--font-size-md, 1rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text-secondary, #5a6272);
+    max-width: var(--container-content, 720px);
+  }
+  .category-page__section-title {
+    font-size: var(--font-size-xl, 1.375rem);
+    margin-bottom: var(--space-4, 1rem);
+    color: var(--color-neutral-900, #1a1a2e);
+  }
+  .category-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4, 1rem);
+  }
+  .category-page__empty {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #5a6272);
+  }
+</style>

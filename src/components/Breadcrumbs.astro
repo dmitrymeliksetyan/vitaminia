@@ -1,0 +1,42 @@
+---
+export interface BreadcrumbItem { label: string; href: string; }
+interface Props { items: BreadcrumbItem[]; }
+const { items } = Astro.props;
+---
+<nav aria-label="Breadcrumb" class="breadcrumbs">
+  <ol class="breadcrumbs__list">
+    {items.map((item, index) => (
+      <li class="breadcrumbs__item">
+        {index < items.length - 1 ? (
+          <>
+            <a href={item.href} class="breadcrumbs__link">{item.label}</a>
+            <span class="breadcrumbs__sep" aria-hidden="true">/</span>
+          </>
+        ) : (
+          <span class="breadcrumbs__current" aria-current="page">{item.label}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs__list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 4px;
+    align-items: center;
+  }
+  .breadcrumbs__item { display: flex; align-items: center; gap: 4px; }
+  .breadcrumbs__link {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    text-decoration: none;
+  }
+  .breadcrumbs__link:hover { color: var(--color-brand-blue, #1e3a7b); text-decoration: underline; }
+  .breadcrumbs__sep { font-size: var(--font-size-sm, 0.875rem); color: var(--color-neutral-400, #9aa3b2); }
+  .breadcrumbs__current { font-size: var(--font-size-sm, 0.875rem); color: var(--color-neutral-400, #9aa3b2); }
+</style>

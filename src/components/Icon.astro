@@ -1,0 +1,21 @@
+---
+import { icons, type IconName } from "../config/theme";
+
+interface Props {
+  name: IconName;
+  size?: number;
+}
+
+const { name, size = 24 } = Astro.props;
+const path = icons[name];
+---
+{path && (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+    set:html={path}
+  />
+)}

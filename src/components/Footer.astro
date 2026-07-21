@@ -1,0 +1,93 @@
+---
+import FeedbackModal from "./FeedbackModal.astro";
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="site-footer__inner">
+
+    <div class="site-footer__row">
+    <div class="site-footer__brand">
+      <span class="site-footer__logo">
+        <img src="/logo.svg" width="20" height="20" alt="" aria-hidden="true" style="vertical-align:-4px;margin-right:6px" />
+        <span class="site-footer__name">Vitaminia</span>
+      </span>
+      <p class="site-footer__disclaimer">
+        Vitaminia no diagnostica ni reemplaza la consulta con un profesional de la salud.
+        La información aquí es de carácter educativo.
+      </p>
+      <nav class="site-footer__links" aria-label="Enlaces adicionales">
+        <a href="/how-it-works">Cómo funciona</a>
+        <a href="/how-it-works#about">Sobre nosotros</a>
+        <a href="/how-it-works#editorial">Política editorial</a>
+        <a href="/how-it-works#faq">Preguntas frecuentes</a>
+        <button type="button" id="feedback-trigger" class="site-footer__links-btn">Contacto</button>
+      </nav>
+    </div>
+    <p class="site-footer__copy">© {year} Vitaminia.mx</p>
+    </div>
+
+  </div>
+
+  <FeedbackModal />
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-neutral-50, #f8f9fb);
+    border-top: 1px solid var(--color-border, #e8eaed);
+    margin-top: var(--space-16, 4rem);
+  }
+  .site-footer__inner {
+    max-width: var(--container-wide, 1100px);
+    margin: 0 auto;
+    padding: var(--space-8, 2rem) var(--space-4, 1rem);
+  }
+  .site-footer__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-6, 1.5rem);
+    flex-wrap: wrap;
+  }
+  .site-footer__logo {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .site-footer__name { color: var(--color-neutral-900, #1a1a2e); }
+  .site-footer__disclaimer {
+    margin: var(--space-2, 0.5rem) 0 0;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    max-width: 420px;
+    line-height: var(--line-height-relaxed, 1.7);
+  }
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4, 1rem);
+    margin-top: var(--space-3, 0.75rem);
+  }
+  .site-footer__links a,
+  .site-footer__links-btn {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-accent-default, #5DB53D);
+    text-decoration: none;
+  }
+  .site-footer__links-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .site-footer__links a:hover,
+  .site-footer__links-btn:hover { text-decoration: underline; }
+  .site-footer__copy {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-neutral-400, #9aa3b2);
+    margin: 0;
+    white-space: nowrap;
+    align-self: flex-end;
+  }
+</style>

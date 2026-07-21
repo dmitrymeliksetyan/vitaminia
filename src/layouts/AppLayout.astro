@@ -1,0 +1,105 @@
+---
+import "../styles/tokens.css";
+import "../styles/global.css";
+import { siteConfig } from "../config/site";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Admin — Vitaminia" } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta name="sb-url" content={import.meta.env.PUBLIC_SUPABASE_URL ?? ''} />
+    <meta name="sb-key" content={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ''} />
+  </head>
+  <body style="margin:0;background:#f8f9fb;font-family:'Inter',system-ui,sans-serif">
+
+    <!-- Шапка админки — намеренно минимальная (внутренний инструмент, один
+         оператор): без публичной навигации сайта и без несуществующих
+         больше фич ("Моя Карта"/"Помощник" — см. HANDOFF.md, эти разделы
+         не переносились в Vitaminia). -->
+    <header id="app-header" style="
+      position:sticky;top:0;z-index:40;
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid #e8eaed;
+      height:56px;
+      display:flex;align-items:center;
+    ">
+      <div style="
+        max-width:1200px;width:100%;margin:0 auto;
+        padding:0 16px;
+        display:flex;align-items:center;justify-content:space-between;
+      ">
+        <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:10px">
+          <img src="/logo.svg" width="32" height="32" alt="" aria-hidden="true" style="flex-shrink:0" />
+          <span style="font-size:1.1rem;font-weight:700;letter-spacing:-.01em;color:#1a1a2e">
+            {siteConfig.name} <span style="font-weight:500;color:#5a6272">Admin</span>
+          </span>
+        </a>
+
+        <div id="nav-user" style="display:none;align-items:center;gap:8px">
+          <span id="nav-user-name" style="font-size:.875rem;color:#5a6272;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+          <button id="nav-logout" style="
+            font-size:.875rem;color:#5a6272;background:none;border:none;
+            padding:7px 12px;border-radius:8px;cursor:pointer;
+            transition:color .15s,background .15s;
+          "
+          onmouseover="this.style.color='#c62828';this.style.background='#fdecec'"
+          onmouseout="this.style.color='#5a6272';this.style.background='transparent'"
+          >Cerrar sesión</button>
+        </div>
+      </div>
+    </header>
+
+    <slot />
+
+  </body>
+</html>
+
+<script>
+import { supabase } from '../lib/auth/browser-supabase';
+import { trackPageView } from '../lib/analytics/page-view';
+
+async function initNav() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const userEl    = document.getElementById('nav-user');
+  const nameEl    = document.getElementById('nav-user-name');
+  const logoutBtn = document.getElementById('nav-logout');
+
+  if (!userEl || !nameEl || !logoutBtn) return;
+
+  if (session?.user) {
+    nameEl.textContent = session.user.email ?? '';
+    userEl.style.display = 'flex';
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    });
+  } else {
+    userEl.style.display = 'none';
+  }
+
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      userEl.style.display = 'none';
+    }
+  });
+}
+
+initNav();
+trackPageView();
+</script>

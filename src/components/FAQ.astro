@@ -1,0 +1,43 @@
+---
+export interface FAQItem {
+  q: string;
+  a: string;
+}
+
+interface Props {
+  items: FAQItem[];
+}
+
+const { items } = Astro.props;
+---
+{items.length > 0 && (
+  <section class="faq" aria-label="Часто задаваемые вопросы">
+    {items.map((item) => (
+      <details class="faq__item">
+        <summary class="faq__question">{item.q}</summary>
+        <p class="faq__answer">{item.a}</p>
+      </details>
+    ))}
+  </section>
+)}
+
+<style>
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+  }
+  .faq__item {
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  }
+  .faq__question {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .faq__answer {
+    margin: var(--space-2, 0.5rem) 0 0;
+    color: var(--color-text-secondary, #555);
+  }
+</style>

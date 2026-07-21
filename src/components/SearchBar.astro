@@ -1,0 +1,37 @@
+---
+interface Props {
+  placeholder?: string;
+}
+
+const { placeholder = "Buscar..." } = Astro.props;
+---
+<div id="search" class="search-bar" data-placeholder={placeholder}></div>
+
+<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+<script>
+  // Pagefind UI генерируется в /pagefind/ во время astro build && pagefind --site dist.
+  // В dev-режиме (npm run dev) этого файла не существует — оборачиваем в try/catch,
+  // чтобы локальная разработка не падала из-за отсутствующего ассета.
+  function mountSearch() {
+    const root = document.querySelector("#search");
+    const placeholder = root?.getAttribute("data-placeholder") ?? "Buscar...";
+
+    const script = document.createElement("script");
+    script.src = "/pagefind/pagefind-ui.js";
+    script.onload = () => {
+      // @ts-expect-error — PagefindUI приходит из внешнего runtime-скрипта, типов нет
+      new window.PagefindUI({ element: "#search", showSubResults: true, placeholder });
+    };
+    script.onerror = () => {
+      console.warn("Pagefind UI недоступен — доступен только после `astro build && pagefind --site dist`.");
+    };
+    document.body.appendChild(script);
+  }
+  mountSearch();
+</script>
+
+<style>
+  .search-bar {
+    width: 100%;
+  }
+</style>

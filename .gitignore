@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.local
+.env.production
+*.log
+.DS_Store
+src/data/build-info.ts
+src/styles/tokens.css

@@ -1,0 +1,56 @@
+{
+  "name": "vitaminia",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "predev": "node scripts/generate-tokens.mjs && node scripts/generate-build-info.mjs",
+    "dev": "astro dev",
+    "tokens": "node scripts/generate-tokens.mjs",
+    "build-info": "node scripts/generate-build-info.mjs",
+    "build": "npm run tokens && npm run build-info && astro build && pagefind --site dist/client",
+    "preview": "node scripts/deploy/run-server.mjs",
+    "typecheck": "npm run build-info && astro check",
+    "content:check": "node scripts/content-check.mjs",
+    "content:find": "node scripts/content-find.mjs",
+    "content:backlog": "node scripts/generate-content-backlog-md.mjs",
+    "health:check": "node scripts/deploy/local-health-check.mjs",
+    "deploy": "bash scripts/deploy/deploy.sh",
+    "deploy:build": "bash scripts/deploy/build.sh",
+    "deploy:verify": "bash scripts/deploy/verify.sh",
+    "deploy:rollback": "bash scripts/deploy/rollback.sh"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/mdx": "^3.1.0",
+    "@astrojs/node": "^8.3.4",
+    "@astrojs/react": "3.6.2",
+    "@astrojs/sitemap": "3.1.6",
+    "@astrojs/tailwind": "^5.1.0",
+    "@mdx-js/mdx": "^3.1.0",
+    "@react-pdf/renderer": "^4.5.1",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0",
+    "astro": "4.15.0",
+    "dotenv": "^17.4.2",
+    "vitaminia-shared": "file:./vitaminia-shared",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recharts": "^3.9.2",
+    "rss": "^1.2.2",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.14.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@types/rss": "^0.0.32",
+    "esbuild": "^0.21.5",
+    "js-yaml": "^4.1.0",
+    "pagefind": "^1.1.0"
+  }
+}

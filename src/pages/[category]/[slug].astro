@@ -1,0 +1,345 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FAQ from "../../components/FAQ.astro";
+import RelatedPages from "../../components/RelatedPages.astro";
+import WarningBox from "../../components/WarningBox.astro";
+import {
+  getLiveNutrients, getNutrientBySlug, getCategoryBySlug,
+  getRelatedNutrients, categoryIdOf
+} from "../../config/content";
+
+const KIND_LABELS: Record<string, string> = {
+  vitamina: "Vitamina",
+  mineral: "Mineral",
+  nutriente: "Nutriente",
+  aminoacido: "Aminoácido",
+  suplemento: "Suplemento"
+};
+
+export async function getStaticPaths() {
+  // Los borradores (draft: true) no reciben una ruta pública — ver isLiveNutrient().
+  const nutrients = await getLiveNutrients();
+  return nutrients.map((n) => ({
+    params: { category: categoryIdOf(n), slug: n.data.slug }
+  }));
+}
+
+const { category: categorySlug, slug } = Astro.params;
+const entry    = await getNutrientBySlug(categorySlug!, slug!);
+const category = await getCategoryBySlug(categorySlug!);
+const related  = await getRelatedNutrients(entry);
+const d = entry.data;
+
+const breadcrumbItems = [
+  { label: "Inicio", href: "/" },
+  { label: category.data.breadcrumbLabel ?? category.data.title, href: `/${categorySlug}` },
+  { label: d.title, href: `/${categorySlug}/${slug}` }
+];
+
+const relatedItems = related.map((r) => ({
+  title: r.data.title,
+  href: `/${categoryIdOf(r)}/${r.data.slug}`
+}));
+
+const updatedDate  = new Date(d.updated);
+const updatedLabel = updatedDate.toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
+
+const jsonLd: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  name: d.title,
+  description: d.shortAnswer,
+  dateModified: updatedDate.toISOString()
+};
+if (d.faq.length > 0) {
+  jsonLd.mainEntity = d.faq.map((f: { q: string; a: string }) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a }
+  }));
+}
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: breadcrumbItems.map((item, i) => ({
+    "@type": "ListItem", position: i + 1, name: item.label, item: item.href
+  }))
+};
+---
+<BaseLayout
+  title={d.seoTitle ?? `${d.title} — Vitaminia.mx`}
+  description={d.seoDescription ?? d.shortAnswer}
+  path={`/${categorySlug}/${slug}`}
+  type="article"
+  modifiedTime={updatedDate.toISOString()}
+>
+  <main class="nutrient-page">
+    <div class="nutrient-page__inner">
+
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <header class="nutrient-header">
+        <div class="nutrient-header__meta">
+          <a href={`/${categorySlug}`} class="nutrient-header__category">
+            {category.data.shortTitle ?? category.data.title}
+          </a>
+          <span class="nutrient-header__kind">{KIND_LABELS[d.kind] ?? d.kind}</span>
+          {d.soluble && <span class="nutrient-header__soluble">Soluble en {d.soluble}</span>}
+        </div>
+        <h1 class="nutrient-header__title">{d.title}</h1>
+        {d.otherNames.length > 0 && (
+          <p class="nutrient-header__othernames">También conocida como: {d.otherNames.join(", ")}</p>
+        )}
+        <p class="nutrient-header__answer">{d.shortAnswer}</p>
+      </header>
+
+      <section class="nutrient-block">
+        <h2 class="nutrient-block__title">¿Qué es?</h2>
+        <p class="nutrient-block__text">{d.whatIsIt}</p>
+      </section>
+
+      {d.whatIsItFor.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">¿Para qué sirve?</h2>
+          <ul class="nutrient-list">
+            {d.whatIsItFor.map((item: string) => <li>{item}</li>)}
+          </ul>
+        </section>
+      )}
+
+      {d.benefits.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">Beneficios</h2>
+          <ul class="nutrient-keypoints">
+            {d.benefits.map((point: string) => (
+              <li class="nutrient-keypoints__item">
+                <span class="nutrient-keypoints__dot" aria-hidden="true"></span>
+                {point}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div class="nutrient-cols">
+        {d.deficiencySigns.length > 0 && (
+          <section class="nutrient-block">
+            <h2 class="nutrient-block__title">Señales de déficit</h2>
+            <ul class="nutrient-list">
+              {d.deficiencySigns.map((c: string) => <li>{c}</li>)}
+            </ul>
+          </section>
+        )}
+        {d.excessSigns.length > 0 && (
+          <section class="nutrient-block">
+            <h2 class="nutrient-block__title">Señales de exceso</h2>
+            <ul class="nutrient-list">
+              {d.excessSigns.map((c: string) => <li>{c}</li>)}
+            </ul>
+          </section>
+        )}
+      </div>
+
+      {d.foodSources.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">Fuentes en la comida</h2>
+          <ul class="nutrient-list">
+            {d.foodSources.map((c: string) => <li>{c}</li>)}
+          </ul>
+        </section>
+      )}
+
+      {d.dailyIntake.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">Dosis diaria recomendada</h2>
+          <ul class="nutrient-list">
+            {d.dailyIntake.map((c: string) => <li>{c}</li>)}
+          </ul>
+        </section>
+      )}
+
+      {d.supplementForms.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">Formas en suplementos</h2>
+          <ul class="nutrient-list">
+            {d.supplementForms.map((c: string) => <li>{c}</li>)}
+          </ul>
+        </section>
+      )}
+
+      {d.contraindications.length > 0 && (
+        <WarningBox variant="warning" title="Posibles contraindicaciones">
+          <ul class="nutrient-list">
+            {d.contraindications.map((item: string) => <li>{item}</li>)}
+          </ul>
+        </WarningBox>
+      )}
+
+      <WarningBox variant="info" title="Aviso importante">
+        Esta información es educativa y no reemplaza el consejo de un profesional de la salud. Consulta a tu médico o nutriólogo antes de iniciar cualquier suplemento.
+      </WarningBox>
+
+      {d.sources.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">Fuentes</h2>
+          <ul class="nutrient-list nutrient-list--links">
+            {d.sources.map((s: { url: string; title: string }) => (
+              <li><a href={s.url} target="_blank" rel="noopener noreferrer">{s.title}</a></li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {d.faq.length > 0 && (
+        <section class="nutrient-block">
+          <h2 class="nutrient-block__title">Preguntas frecuentes</h2>
+          <FAQ items={d.faq} />
+        </section>
+      )}
+
+      {relatedItems.length > 0 && (
+        <RelatedPages items={relatedItems} heading="Relacionados" />
+      )}
+
+      <div class="nutrient-footer-meta">
+        <span>Actualizado: {updatedLabel}</span>
+        {d.reviewed && (
+          <span>Revisado: {new Date(d.reviewed).toLocaleDateString("es-MX", { year: "numeric", month: "long" })}</span>
+        )}
+      </div>
+
+    </div>
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+  </main>
+</BaseLayout>
+
+<style>
+  .nutrient-page {
+    padding: var(--space-8, 2rem) var(--space-4, 1rem) var(--space-16, 4rem);
+  }
+  .nutrient-page__inner {
+    max-width: var(--container-content, 720px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8, 2rem);
+  }
+
+  .nutrient-header { display: flex; flex-direction: column; gap: var(--space-3, 0.75rem); }
+  .nutrient-header__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 0.75rem);
+    flex-wrap: wrap;
+  }
+  .nutrient-header__category, .nutrient-header__kind, .nutrient-header__soluble {
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: var(--font-weight-medium, 500);
+    padding: 3px 10px;
+    border-radius: var(--radius-full, 999px);
+    text-decoration: none;
+  }
+  .nutrient-header__category {
+    color: var(--color-accent-default, #5DB53D);
+    background: rgba(93, 181, 61, 0.1);
+  }
+  .nutrient-header__category:hover { background: rgba(93, 181, 61, 0.18); text-decoration: none; }
+  .nutrient-header__kind {
+    color: #B8600B;
+    background: rgba(245, 130, 31, 0.12);
+  }
+  .nutrient-header__soluble {
+    color: #00706B;
+    background: rgba(0, 161, 154, 0.12);
+  }
+  .nutrient-header__title {
+    font-size: clamp(1.5rem, 3.5vw, 2rem);
+    font-weight: var(--font-weight-bold, 700);
+    letter-spacing: -0.02em;
+    color: var(--color-neutral-900, #1a1a2e);
+    line-height: 1.2;
+  }
+  .nutrient-header__othernames {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+  }
+  .nutrient-header__answer {
+    font-size: var(--font-size-lg, 1.125rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text-secondary, #5a6272);
+  }
+
+  .nutrient-block { display: flex; flex-direction: column; gap: var(--space-3, 0.75rem); }
+  .nutrient-block__title {
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-neutral-900, #1a1a2e);
+    padding-bottom: var(--space-2, 0.5rem);
+    border-bottom: 2px solid var(--color-border, #e8eaed);
+  }
+  .nutrient-block__text {
+    font-size: var(--font-size-md, 1rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text, #1a1a2e);
+  }
+
+  .nutrient-keypoints {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+  }
+  .nutrient-keypoints__item {
+    display: flex;
+    gap: var(--space-3, 0.75rem);
+    align-items: flex-start;
+    font-size: var(--font-size-md, 1rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    padding: var(--space-3, 0.75rem);
+    background: var(--color-neutral-50, #f8f9fb);
+    border-radius: var(--radius-md, 8px);
+  }
+  .nutrient-keypoints__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent-default, #5DB53D);
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+
+  .nutrient-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+    font-size: var(--font-size-md, 1rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text, #1a1a2e);
+  }
+  .nutrient-list--links a { color: var(--color-accent-default, #5DB53D); }
+
+  .nutrient-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6, 1.5rem);
+  }
+  @media (max-width: 640px) {
+    .nutrient-cols { grid-template-columns: 1fr; }
+  }
+
+  .nutrient-footer-meta {
+    display: flex;
+    gap: var(--space-4, 1rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    flex-wrap: wrap;
+  }
+</style>

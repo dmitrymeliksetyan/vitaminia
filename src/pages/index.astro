@@ -1,0 +1,185 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SearchBar from "../components/SearchBar.astro";
+import CategoryCard from "../components/CategoryCard.astro";
+import { getAllCategories, getAllNutrients } from "../config/content";
+import type { IconName } from "../config/theme";
+
+const categories = await getAllCategories();
+const nutrients   = await getAllNutrients();
+
+const categoryItems = categories.map((c) => ({
+  ...c,
+  icon: c.data.icon as IconName | undefined,
+}));
+---
+<BaseLayout
+  title="Vitaminia.mx — Tu país de vitaminas"
+  description="Información clara y confiable sobre vitaminas, minerales, nutrientes y suplementos para vivir mejor cada día."
+  path="/"
+>
+  <main>
+
+    <section class="hero">
+      <div class="hero__inner">
+        <div class="hero__badge">Tu país de vitaminas</div>
+        <h1 class="hero__title">Entiende qué necesita<br/>tu cuerpo</h1>
+        <p class="hero__subtitle">
+          Vitaminia es un espacio informativo independiente sobre vitaminas,
+          minerales y suplementos — sin vender nada, solo explicando cómo funcionan.
+        </p>
+        <div class="hero__search">
+          <SearchBar placeholder="Buscar vitaminas, minerales, nutrientes..." />
+        </div>
+        <p class="hero__stat">
+          <span class="hero__stat-num">{nutrients.length}</span> sustancias explicadas
+        </p>
+      </div>
+    </section>
+
+    <section class="sections" id="sections" aria-label="Categorías">
+      <div class="sections__inner">
+        <h2 class="sections__title">Explora por categorías</h2>
+        <div class="sections__grid">
+          {categoryItems.map((c) => (
+            <CategoryCard
+              title={c.data.title}
+              description={c.data.description}
+              href={`/${c.data.slug}`}
+              icon={c.icon}
+              accentColor={c.data.accentColor}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="trust">
+      <div class="trust__inner">
+        <span class="trust__icon" aria-hidden="true">✓</span>
+        <div>
+          <p class="trust__title">Contenido revisado por expertos</p>
+          <p class="trust__desc">Información basada en evidencia científica y actualizada constantemente.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="disclaimer">
+      <div class="disclaimer__inner">
+        <p>
+          La información en Vitaminia.mx es de carácter educativo y no reemplaza
+          la consulta con un médico o nutriólogo. Ante cualquier duda sobre tu
+          salud, consulta a un profesional.
+        </p>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #f8f9fb 0%, #eef8f0 100%);
+    border-bottom: 1px solid var(--color-border, #e8eaed);
+    padding: var(--space-16, 4rem) var(--space-4, 1rem);
+  }
+  .hero__inner {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4, 1rem);
+  }
+  .hero__badge {
+    display: inline-flex;
+    align-self: flex-start;
+    font-size: var(--font-size-xs, 0.75rem);
+    font-weight: var(--font-weight-semibold, 600);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent-default, #5DB53D);
+    background: rgba(93, 181, 61, 0.1);
+    padding: 4px 12px;
+    border-radius: var(--radius-full, 999px);
+  }
+  .hero__title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: var(--font-weight-bold, 700);
+    line-height: 1.15;
+    color: var(--color-neutral-900, #1a1a2e);
+    letter-spacing: -0.02em;
+  }
+  .hero__subtitle {
+    font-size: var(--font-size-lg, 1.125rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text-secondary, #5a6272);
+  }
+  .hero__search { margin-top: var(--space-2, 0.5rem); }
+  .hero__stat {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-neutral-400, #9aa3b2);
+  }
+  .hero__stat-num {
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-accent-default, #5DB53D);
+  }
+
+  /* Sections */
+  .sections { padding: var(--space-16, 4rem) var(--space-4, 1rem); }
+  .sections__inner { max-width: var(--container-wide, 1100px); margin: 0 auto; }
+  .sections__title {
+    font-size: var(--font-size-xl, 1.375rem);
+    margin-bottom: var(--space-6, 1.5rem);
+    color: var(--color-neutral-900, #1a1a2e);
+  }
+  .sections__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-4, 1rem);
+  }
+
+  /* Trust strip */
+  .trust {
+    background: rgba(93, 181, 61, 0.06);
+    border-top: 1px solid var(--color-border, #e8eaed);
+    border-bottom: 1px solid var(--color-border, #e8eaed);
+    padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  }
+  .trust__inner {
+    max-width: var(--container-wide, 1100px);
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3, 0.75rem);
+  }
+  .trust__icon {
+    color: var(--color-accent-default, #5DB53D);
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .trust__title {
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-neutral-900, #1a1a2e);
+    margin: 0;
+  }
+  .trust__desc {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #5a6272);
+    margin: 2px 0 0;
+  }
+
+  /* Disclaimer */
+  .disclaimer {
+    background: var(--color-neutral-50, #f8f9fb);
+    padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  }
+  .disclaimer__inner {
+    max-width: var(--container-content, 720px);
+    margin: 0 auto;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-neutral-400, #9aa3b2);
+    line-height: var(--line-height-relaxed, 1.7);
+    text-align: center;
+  }
+</style>

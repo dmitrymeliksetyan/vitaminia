@@ -1,0 +1,130 @@
+[
+  {
+    "id": "CAT-001",
+    "type": "category",
+    "key": "vitaminas"
+  },
+  {
+    "id": "CAT-002",
+    "type": "category",
+    "key": "minerales"
+  },
+  {
+    "id": "CAT-003",
+    "type": "category",
+    "key": "nutrientes"
+  },
+  {
+    "id": "CAT-004",
+    "type": "category",
+    "key": "suplementos"
+  },
+  {
+    "id": "NUT-001",
+    "type": "nutrient",
+    "key": "vitaminas/vitamina-d"
+  },
+  {
+    "id": "NUT-002",
+    "type": "nutrient",
+    "key": "minerales/magnesio"
+  },
+  {
+    "id": "NUT-003",
+    "type": "nutrient",
+    "key": "suplementos/creatina"
+  },
+  {
+    "id": "NUT-004",
+    "type": "nutrient",
+    "key": "nutrientes/omega-3"
+  },
+  {
+    "id": "PAGE-001",
+    "type": "page",
+    "key": "index",
+    "url": "/",
+    "title": "Inicio",
+    "contentType": "other"
+  },
+  {
+    "id": "PAGE-002",
+    "type": "page",
+    "key": "how-it-works",
+    "url": "/how-it-works",
+    "title": "Cómo funciona / Sobre nosotros",
+    "contentType": "about"
+  },
+  {
+    "id": "PAGE-003",
+    "type": "page",
+    "key": "admin",
+    "url": "/admin",
+    "title": "Admin — analítica",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-004",
+    "type": "page",
+    "key": "404",
+    "url": "/404",
+    "title": "404",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-005",
+    "type": "page",
+    "key": "auth/login",
+    "url": "/auth/login",
+    "title": "Iniciar sesión",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-006",
+    "type": "page",
+    "key": "auth/register",
+    "url": "/auth/register",
+    "title": "Registro",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-007",
+    "type": "page",
+    "key": "auth/reset-password",
+    "url": "/auth/reset-password",
+    "title": "Recuperar contraseña",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-008",
+    "type": "page",
+    "key": "auth/update-password",
+    "url": "/auth/update-password",
+    "title": "Cambiar contraseña",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-009",
+    "type": "page",
+    "key": "auth/callback",
+    "url": "/auth/callback",
+    "title": "OAuth callback",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-010",
+    "type": "page",
+    "key": "feed.xml",
+    "url": "/feed.xml",
+    "title": "RSS feed",
+    "contentType": "system"
+  },
+  {
+    "id": "PAGE-011",
+    "type": "page",
+    "key": "robots.txt",
+    "url": "/robots.txt",
+    "title": "robots.txt",
+    "contentType": "system"
+  }
+]

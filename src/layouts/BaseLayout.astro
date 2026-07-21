@@ -1,0 +1,56 @@
+---
+import "../styles/tokens.css";
+import "../styles/global.css";
+import { buildSeo, type SeoInput } from "../config/seo";
+import { siteConfig } from "../config/site";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props extends SeoInput {}
+
+const seo = buildSeo(Astro.props);
+const canonicalURL = new URL(Astro.props.path ?? "/", siteConfig.url);
+---
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seo.title}</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="description" content={seo.description} />
+    <link rel="canonical" href={canonicalURL.toString()} />
+    <meta property="og:title" content={seo.og.title} />
+    <meta property="og:description" content={seo.og.description} />
+    <meta property="og:type" content={seo.og.type} />
+    <meta property="og:url" content={seo.og.url} />
+    <meta property="og:image" content={seo.og.image} />
+    <meta name="twitter:card" content={seo.twitter.card} />
+    <meta name="twitter:title" content={seo.twitter.title} />
+    <meta name="twitter:description" content={seo.twitter.description} />
+    <meta name="twitter:image" content={seo.twitter.image} />
+    <meta name="yandex-verification" content="f4a54a3ee966990c" />
+    <meta name="sb-url" content={import.meta.env.PUBLIC_SUPABASE_URL ?? ''} />
+    <meta name="sb-key" content={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ''} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="alternate" type="application/rss+xml" title={siteConfig.name} href={`${siteConfig.url}/feed.xml`} />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SQFQ4R7WW6"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-SQFQ4R7WW6');
+    </script>
+  </head>
+  <body>
+    <Header />
+    <slot />
+    <Footer />
+    <script>
+      import { trackPageView } from "../lib/analytics/page-view";
+      trackPageView();
+    </script>
+  </body>
+</html>

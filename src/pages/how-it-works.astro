@@ -1,0 +1,167 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CategoryCard from "../components/CategoryCard.astro";
+import WarningBox from "../components/WarningBox.astro";
+import FAQ from "../components/FAQ.astro";
+import { getAllCategories } from "../config/content";
+import type { IconName } from "../config/theme";
+
+const categories = await getAllCategories();
+const categoryItems = categories.map((c) => ({
+  ...c,
+  icon: c.data.icon as IconName | undefined,
+}));
+
+const faqItems = [
+  {
+    q: "¿Qué es Vitaminia.mx?",
+    a: "Vitaminia.mx es un espacio informativo independiente sobre vitaminas, minerales, nutrientes y suplementos. No es una tienda ni un consultorio médico — es una guía para entender cómo funcionan estas sustancias en el cuerpo.",
+  },
+  {
+    q: "¿Vitaminia vende suplementos?",
+    a: "No. Vitaminia no vende productos ni recibe pago de marcas para recomendar suplementos específicos. El contenido es puramente informativo.",
+  },
+  {
+    q: "¿El contenido reemplaza a un médico o nutriólogo?",
+    a: "No. La información es educativa. Ante síntomas, condiciones médicas o antes de empezar cualquier suplemento, consulta a un profesional de la salud.",
+  },
+  {
+    q: "¿Cómo se elabora el contenido?",
+    a: "Cada artículo se basa en fuentes públicas confiables (organismos de salud, instituciones académicas, guías clínicas) y pasa por un proceso de redacción y revisión antes de publicarse. Ver la política editorial más abajo.",
+  },
+  {
+    q: "¿Con qué frecuencia se actualiza el contenido?",
+    a: "Revisamos y actualizamos los artículos de forma periódica para reflejar la evidencia disponible más reciente. La fecha de \"Actualizado\" aparece al final de cada artículo.",
+  },
+];
+---
+<BaseLayout
+  title="Cómo funciona Vitaminia | Sobre nosotros"
+  description="Cómo está organizado Vitaminia, quiénes escriben el contenido y nuestra política editorial."
+  path="/how-it-works"
+>
+  <main class="hiw">
+
+    <section class="hiw-hero">
+      <div class="hiw-hero__inner">
+        <h1 class="hiw-hero__title">Tu país de vitaminas</h1>
+        <p class="hiw-hero__subtitle">
+          Vitaminia es un espacio informativo independiente sobre vitaminas, minerales,
+          nutrientes y suplementos — no una tienda, no una clínica.
+        </p>
+      </div>
+    </section>
+
+    <section class="hiw-section" id="sections">
+      <div class="hiw-section__inner">
+        <h2 class="hiw-h2">Explora por categorías</h2>
+        <div class="hiw-grid">
+          {categoryItems.map((c) => (
+            <CategoryCard
+              title={c.data.title}
+              description={c.data.description}
+              href={`/${c.data.slug}`}
+              icon={c.icon}
+              accentColor={c.data.accentColor}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="hiw-section hiw-section--muted" id="about">
+      <div class="hiw-section__inner hiw-section__inner--narrow">
+        <h2 class="hiw-h2">Sobre nosotros</h2>
+        <p class="hiw-text">
+          Creamos Vitaminia porque encontrar información clara y confiable sobre vitaminas
+          y minerales en español suele ser difícil: entre publicidad de suplementos y
+          artículos contradictorios, es fácil perderse. Nuestro objetivo es simple —
+          explicar qué hace cada sustancia, para qué sirve, y ayudarte a entender tus
+          propias necesidades para poder hablar con más claridad con tu médico o nutriólogo.
+        </p>
+        <p class="hiw-text">
+          Vitaminia no diagnostica, no prescribe y no vende suplementos. Es un punto de
+          partida informativo, no un sustituto de la atención profesional de salud.
+        </p>
+      </div>
+    </section>
+
+    <section class="hiw-section" id="editorial">
+      <div class="hiw-section__inner hiw-section__inner--narrow">
+        <h2 class="hiw-h2">Política editorial</h2>
+        <p class="hiw-text">
+          Cada artículo de Vitaminia sigue el mismo proceso: investigación basada en
+          fuentes públicas confiables (organismos de salud y nutrición, instituciones
+          académicas, guías clínicas), redacción en un lenguaje claro y cotidiano, y una
+          revisión de precisión antes de publicarse. Cada afirmación relevante debe estar
+          respaldada por al menos una fuente citada al final del artículo.
+        </p>
+        <p class="hiw-text">
+          No aceptamos pago de marcas de suplementos a cambio de menciones o
+          recomendaciones. Si un artículo necesita corregirse, lo actualizamos y
+          reflejamos la fecha de revisión.
+        </p>
+        <WarningBox variant="info" title="Aviso importante">
+          La información en Vitaminia.mx es de carácter educativo y no reemplaza la
+          consulta con un médico o nutriólogo. Ante cualquier duda sobre tu salud,
+          consulta a un profesional.
+        </WarningBox>
+      </div>
+    </section>
+
+    <section class="hiw-section hiw-section--muted" id="faq">
+      <div class="hiw-section__inner hiw-section__inner--narrow">
+        <h2 class="hiw-h2">Preguntas frecuentes</h2>
+        <FAQ items={faqItems} />
+      </div>
+    </section>
+
+  </main>
+</BaseLayout>
+
+<style>
+  .hiw-hero {
+    background: linear-gradient(135deg, #f8f9fb 0%, #eef8f0 100%);
+    border-bottom: 1px solid var(--color-border, #e8eaed);
+    padding: var(--space-16, 4rem) var(--space-4, 1rem);
+  }
+  .hiw-hero__inner {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3, 0.75rem);
+  }
+  .hiw-hero__title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: var(--font-weight-bold, 700);
+    color: var(--color-neutral-900, #1a1a2e);
+    letter-spacing: -0.02em;
+  }
+  .hiw-hero__subtitle {
+    font-size: var(--font-size-lg, 1.125rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text-secondary, #5a6272);
+  }
+  .hiw-section { padding: var(--space-16, 4rem) var(--space-4, 1rem); }
+  .hiw-section--muted { background: var(--color-neutral-50, #f8f9fb); }
+  .hiw-section__inner { max-width: var(--container-wide, 1100px); margin: 0 auto; }
+  .hiw-section__inner--narrow { max-width: var(--container-content, 720px); }
+  .hiw-h2 {
+    font-size: var(--font-size-xl, 1.375rem);
+    margin-bottom: var(--space-6, 1.5rem);
+    color: var(--color-neutral-900, #1a1a2e);
+  }
+  .hiw-text {
+    font-size: var(--font-size-md, 1rem);
+    line-height: var(--line-height-relaxed, 1.7);
+    color: var(--color-text-secondary, #5a6272);
+    margin-bottom: var(--space-4, 1rem);
+  }
+  .hiw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-4, 1rem);
+  }
+</style>
