@@ -766,7 +766,7 @@ export default function EditorialApp({ section, jobId }: { section: EditorialSec
       <RefreshingHint show={refreshing} />
       {loadError && <RetryBanner message={loadError} onRetry={() => setReloadTick((t) => t + 1)} />}
       <div style={{ marginBottom: "var(--space-2)" }}>
-        <h1 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", margin: 0, color: "var(--color-text)" }}>AI-редакция MEDIZIN.RU</h1>
+        <h1 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", margin: 0, color: "var(--color-text)" }}>AI-редакция Vitaminia.mx</h1>
         <p style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)", margin: "6px 0 0", maxWidth: 640 }}>
           Исследует спрос, формирует контент-план, готовит материалы, проверяет факты и передаёт статьи на публикацию.
         </p>
@@ -1062,7 +1062,7 @@ function AiEditorialHub({
       {/* Верхняя строка — п.5 ТЗ */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8, marginBottom: "var(--space-3)" }}>
         <div>
-          <div style={{ fontSize: "var(--font-size-lg)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text)" }}>AI-редакция MEDIZIN.RU</div>
+          <div style={{ fontSize: "var(--font-size-lg)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text)" }}>AI-редакция Vitaminia.mx</div>
           <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-secondary)", marginTop: 2, maxWidth: 560 }}>
             AI самостоятельно исследует медицинские темы, формирует контент-план, пишет статьи, проверяет факты и передаёт материалы на публикацию.
           </div>
@@ -2069,7 +2069,7 @@ function StrategyPanel({
         <div>
           <div style={{ fontSize: "var(--font-size-md)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text)" }}>AI-стратег</div>
           <p style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)", margin: "4px 0 0", maxWidth: 560 }}>
-            Найду самые важные темы, которых ещё нет на MEDIZIN.RU. Проверю существующие материалы, дубли, пробелы в кластерах и поисковый спрос.
+            Найду самые важные темы, которых ещё нет на Vitaminia.mx. Проверю существующие материалы, дубли, пробелы в кластерах и поисковый спрос.
           </p>
           {lastRun && (
             <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-secondary)", marginTop: 8 }}>
