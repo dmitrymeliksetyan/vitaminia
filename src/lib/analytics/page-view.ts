@@ -6,6 +6,12 @@ import { trackEvent } from './track-event';
 // Технические/неперечисленные страницы намеренно пропускаются (ТЗ: "не
 // обязательно записывать каждую техническую страницу").
 
+// Категории Vitaminia — см. src/content/categories/*.mdx (slug). Список
+// небольшой и меняется редко, поэтому захардкожен здесь же, аналогично тому,
+// как medizin хардкодил литерал "symptoms" в этом же файле — доступа к
+// Astro-коллекциям из клиентского скрипта нет.
+const CATEGORY_SLUGS = new Set(['vitaminas', 'minerales', 'nutrientes', 'suplementos']);
+
 export function trackPageView(): void {
   const path = window.location.pathname;
 
@@ -17,29 +23,20 @@ export function trackPageView(): void {
     trackEvent('page_view', { content_type: 'how_it_works' });
     return;
   }
-  if (path === '/my' || path === '/my/') {
-    trackEvent('page_view', { content_type: 'my_card' });
-    return;
-  }
-  if (path === '/assistant' || path === '/assistant/') {
-    trackEvent('page_view', { content_type: 'assistant' });
+
+  // /{category}/{slug}/ — страница конкретного нутриента.
+  const nutrientMatch = path.match(/^\/([^/]+)\/([^/]+)\/?$/);
+  if (nutrientMatch && CATEGORY_SLUGS.has(nutrientMatch[1])) {
+    trackEvent('page_view', { content_type: 'nutrient', slug: nutrientMatch[2] });
     return;
   }
 
-  // /symptoms/[topic]/[slug]/ — страница конкретного симптома.
-  const symptomMatch = path.match(/^\/symptoms\/([^/]+)\/([^/]+)\/?$/);
-  if (symptomMatch) {
-    trackEvent('page_view', { content_type: 'symptom', slug: symptomMatch[2] });
+  // /{category}/ — страница категории (каталог нутриентов по теме).
+  const categoryMatch = path.match(/^\/([^/]+)\/?$/);
+  if (categoryMatch && CATEGORY_SLUGS.has(categoryMatch[1])) {
+    trackEvent('page_view', { content_type: 'nutrient_category', slug: categoryMatch[1] });
     return;
   }
 
-  // /symptoms/[topic]/ — страница категории ("каталог симптомов" по теме).
-  const categoryMatch = path.match(/^\/symptoms\/([^/]+)\/?$/);
-  if (categoryMatch) {
-    trackEvent('page_view', { content_type: 'symptom_category', slug: categoryMatch[1] });
-    return;
-  }
-
-  // Остальные страницы (auth, assistant-test, hangover и т.д.) намеренно
-  // не отслеживаются на Этапе 1.
+  // Остальные страницы (auth, admin и т.д.) намеренно не отслеживаются.
 }

@@ -51,7 +51,7 @@ log "Verify started (base=$BASE_URL)"
 check_status "Главная страница" "$BASE_URL/" "200"
 check_status "Health check" "$BASE_URL/health" "200"
 check_status "Sitemap" "$BASE_URL/sitemap-index.xml" "200"
-check_status "Известная статическая страница" "$BASE_URL/symptoms/temperature/high-fever/" "200"
+check_status "Известная статическая страница" "$BASE_URL/vitaminas/vitamina-d/" "200"
 check_status "Несуществующая страница -> 404 (не 500)" "$BASE_URL/this-page-does-not-exist-$(date +%s)/" "404"
 
 # health-check возвращает JSON — отдельно убеждаемся, что это не 200 с

@@ -3,7 +3,7 @@ import { siteConfig } from "./site";
 export interface SeoInput {
   title: string;
   description: string;
-  path: string; // например "/symptoms/cough/wet-cough"
+  path: string; // например "/vitaminas/vitamina-d"
   image?: string; // абсолютный или относительный URL, по умолчанию siteConfig.defaultOgImage
   type?: "website" | "article";
   publishedTime?: string; // ISO, только для type="article"

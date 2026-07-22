@@ -24,7 +24,7 @@ import { siteConfig } from "./src/config/site.ts";
 // @astrojs/react@6.0.1 + Astro 4.15.0. Баг: React устанавливает jsx:'automatic'
 // глобально через config.esbuild, что конфликтует с Astro compile.js на root-route.
 // `npm run build` и `npm run preview` работают без ошибок.
-// Все остальные маршруты (/my, /auth/*, /hangover, /symptoms/*) работают в dev.
+// Все остальные маршруты (/auth/*, /{category}/*) работают в dev.
 //
 // Infrastructure v2 ("переезд с Cloudflare Pages на собственный сервер") —
 // адаптер сменён с @astrojs/cloudflare на @astrojs/node (standalone). Сам
