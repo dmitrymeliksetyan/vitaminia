@@ -79,7 +79,7 @@ async function checkLive(url) {
 async function main() {
   const { data: jobs, error } = await supabase
     .from("content_jobs")
-    .select("id, draft, publish_expected_url, content_type")
+    .select("id, draft, publish_expected_url")
     .eq("status", "deploying");
 
   if (error) {
@@ -102,12 +102,8 @@ async function main() {
       console.warn(`[resolve-deploying-jobs] job ${job.id}: нет publish_expected_url — пропускаю`);
       continue;
     }
-    // Раздел «Лекарства» — заголовок материала лежит в genericName, не в
-    // title (см. тот же фикс в check-deploy.ts, это зеркальная логика).
     const fm = job.draft?.frontmatter ?? {};
-    const title = job.content_type === "drug"
-      ? (typeof fm.genericName === "string" ? fm.genericName : "")
-      : (typeof fm.title === "string" ? fm.title : "");
+    const title = typeof fm.title === "string" ? fm.title : "";
     const result = await checkLive(url);
 
     if (result.live && title && result.html.includes(title)) {
