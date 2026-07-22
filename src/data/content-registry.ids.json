@@ -126,5 +126,10 @@
     "url": "/robots.txt",
     "title": "robots.txt",
     "contentType": "system"
+  },
+  {
+    "id": "NUT-005",
+    "type": "nutrient",
+    "key": "vitaminas/acido-folico"
   }
 ]
